@@ -18,14 +18,14 @@ WHITE='\033[1;37m'
 
 # Repo de origem (para instalar atalho e atualizar)
 _ref="${SCRIPT2_REF:-main}"
-SCRIPT_URL="https://raw.githubusercontent.com/Alefsousa5/script2/${_ref}/vpsmanager.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/Alefsousa5/script2/${_ref}/menux.sh"
 XRAY_CONFIG="/usr/local/etc/xray/config.json"
 VPS_DIR="/usr/local/lib/vpsmanager"
 
 # Verificar se é root
 if [ "$EUID" -ne 0 ]; then
     echo -e "${RED}[ERRO] Este script precisa ser executado como root!${NC}"
-    echo -e "${YELLOW}Use: sudo ./vpsmanager.sh ou su -${NC}"
+    echo -e "${YELLOW}Use: sudo ./menux.sh ou su -${NC}"
     exit 1
 fi
 
@@ -1156,7 +1156,7 @@ menu_config() {
         echo -e "${CYAN}╔══════════════════════════════════════════════╗${NC}"
         echo -e "${CYAN}║${GREEN}              15 — CONFIGURAÇÕES              ${CYAN}║${NC}"
         echo -e "${CYAN}╠══════════════════════════════════════════════╣${NC}"
-        echo -e "${CYAN}║${NC}  ${YELLOW}[01]${NC} Instalar atalho global (comando 'vps') ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC}  ${YELLOW}[01]${NC} Atalho global (comando 'menux')        ${CYAN}║${NC}"
         echo -e "${CYAN}║${NC}  ${YELLOW}[02]${NC} Atualizar este script                 ${CYAN}║${NC}"
         echo -e "${CYAN}║${NC}  ${RED}[00]${NC} Voltar ao menu principal              ${CYAN}║${NC}"
         echo -e "${CYAN}╚══════════════════════════════════════════════╝${NC}"
@@ -1166,15 +1166,15 @@ menu_config() {
         case $op_cfg in
             1|01)
                 if [ -f "$0" ] && [[ "$0" != /dev/fd/* && "$0" != /proc/self/fd/* ]]; then
-                    cp "$0" /usr/local/bin/vps
-                elif [ -f /usr/local/bin/vps ]; then
+                    cp "$0" /usr/local/bin/menux
+                elif [ -f /usr/local/bin/menux ]; then
                     echo -e "${YELLOW}Atalho já existe, mantendo versão atual.${NC}"
                 else
-                    curl -sL "$SCRIPT_URL" -o /usr/local/bin/vps
+                    curl -sL "$SCRIPT_URL" -o /usr/local/bin/menux
                 fi
-                chmod +x /usr/local/bin/vps
-                echo -e "${GREEN}Comando 'vps' instalado com sucesso! Agora basta digitar 'vps' em qualquer lugar.${NC}"
-                log_action "Instalou atalho global 'vps'"
+                chmod +x /usr/local/bin/menux
+                echo -e "${GREEN}Comando 'menux' instalado com sucesso! Agora basta digitar 'menux' em qualquer lugar.${NC}"
+                log_action "Instalou atalho global 'menux'"
                 pausa
                 ;;
             2|02)
@@ -1182,8 +1182,8 @@ menu_config() {
                 curl -sL "$SCRIPT_URL" -o /tmp/vpsmanager_new.sh
                 if grep -q "VPS MANAGER PRO" /tmp/vpsmanager_new.sh 2>/dev/null; then
                     chmod +x /tmp/vpsmanager_new.sh
-                    if [ -f /usr/local/bin/vps ]; then
-                        cp /tmp/vpsmanager_new.sh /usr/local/bin/vps
+                    if [ -f /usr/local/bin/menux ]; then
+                        cp /tmp/vpsmanager_new.sh /usr/local/bin/menux
                     fi
                     if [ -f "$0" ] && [[ "$0" != /dev/fd/* && "$0" != /proc/self/fd/* ]]; then
                         cp /tmp/vpsmanager_new.sh "$0"

@@ -15,11 +15,11 @@ serviços, firewall, DNS, apps, Docker, rede, backup, logs) + **AUTOMAÇÃO**:
 - Backup diário automático às 04:00 (mantém últimos 7)
 
 ```bash
-apt update -y && apt upgrade -y && wget https://raw.githubusercontent.com/Alefsousa5/script2/main/vpsmanager.sh && chmod 777 vpsmanager.sh && ./vpsmanager.sh
+apt update -y && apt upgrade -y && wget https://raw.githubusercontent.com/Alefsousa5/script2/main/menux.sh && chmod 777 menux.sh && ./menux.sh
 ```
 
 Depois instale o atalho em **15 — CONFIGURAÇÕES → [01]** e chame de
-qualquer lugar com: `vps`
+qualquer lugar com: `menux`
 
 ---
 
