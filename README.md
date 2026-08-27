@@ -4,7 +4,26 @@ Fork do SSHPLUS (créditos: @VSCONEXAO) com **Gerenciador XRAY** integrado
 (Xray-core: VLESS e VMESS sobre WebSocket), além do V2RAY, TROJAN-GO,
 SLOWDNS, SSLH, CHISEL e demais modos de conexão originais.
 
-## ⚡ Instalação (como root)
+## 🤖 VPS MANAGER PRO (novo!)
+
+Painel standalone que gerencia **todo o servidor** com um comando só
+(usuários SSH, senhas/acessos, Xray completo com clientes e links,
+serviços, firewall, DNS, apps, Docker, rede, backup, logs) + **AUTOMAÇÃO**:
+
+- Watchdog: reinicia SSH/Xray/Nginx/Apache/Cron automaticamente se caírem
+- Remove usuários SSH expirados sozinho (a cada 6h)
+- Backup diário automático às 04:00 (mantém últimos 7)
+
+```bash
+apt update -y && apt upgrade -y && wget https://raw.githubusercontent.com/Alefsousa5/script2/main/vpsmanager.sh && chmod 777 vpsmanager.sh && ./vpsmanager.sh
+```
+
+Depois instale o atalho em **15 — CONFIGURAÇÕES → [01]** e chame de
+qualquer lugar com: `vps`
+
+---
+
+## ⚡ SSHPLUS MANAGER — Instalação (como root)
 
 ```bash
 apt update -y && apt upgrade -y && wget https://raw.githubusercontent.com/Alefsousa5/script2/main/Plus && chmod 777 Plus && ./Plus
