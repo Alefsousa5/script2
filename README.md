@@ -16,6 +16,22 @@ Após instalar, o comando principal é:
 menu
 ```
 
+## 📋 Menu principal (novo layout)
+
+```
+[01] • GERENCIAR USUARIOS      → criar/teste/remover, datas, limites, senhas, backup, limiter
+[02] • GERENCIAR FERRAMENTAS   → badvpn, bots telegram, block torrent, hosts, banner, otimizar
+[03] • GERENCIAR SISTEMA       → reiniciar sistema/serviços, info VPS, tráfego, swap, senha root
+[04] • [!] ATUALIZAR SCRIPT
+[05] • [!] REMOVER SCRIPT
+[06] • VERIFICACOES            → monitor SSH, online app, relatórios, expirados,
+                                 status dos serviços, speedtest, tráfego
+[07] • AUTO EXECUCAO
+[08] • MODO DE CONEXAO         → openssh, squid, dropbear, openvpn, proxy, ssl, sslh, chisel, slowdns
+[09] • V2RAY/XRAY              → gerenciadores V2RAY e XRAY
+[00] • SAIR DO MENU <<<
+```
+
 ## ★ Novidade: XRAY
 
 No menu principal acesse **MODO DE CONEXAO → [12] XRAY** (ou rode `xraymanager`):
