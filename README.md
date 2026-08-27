@@ -34,7 +34,9 @@ menu
 
 ## ★ Novidade: XRAY
 
-No menu principal acesse **MODO DE CONEXAO → [12] XRAY** (ou rode `xraymanager`):
+No menu principal acesse **MODO DE CONEXAO → [12] XRAY** (ou rode `xraymanager`).
+Porta WebSocket padrão: **80** (ideal para operadoras), com detecção de conflito
+de porta e permissão de bind corrigida para portas baixas.
 
 | Opção | Função |
 |-------|--------|
