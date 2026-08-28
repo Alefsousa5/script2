@@ -2,17 +2,24 @@
 
 Painel de gerenciamento **interativo em Bash** para administrar SSH e Xray (VLESS/VMess/Trojan) diretamente da VPS, sem necessidade de interface web.
 
-Desenvolvido para funcionar em **Debian/Ubuntu** (e derivados) e também RHEL/CentOS.
+Desenvolvido para funcionar em **Debian/Ubuntu** (e derivados), RHEL/CentOS/Rocky/Alma e Alpine.
 
 ---
 
-## 📦 Instalação
+## 📦 Instalação (em 1 comando)
+
+Rode isso diretamente na VPS como root — o instalador detecta o SO, instala dependências, baixa o painel, cria os comandos globais e opcionalmente instala/configura o Xray:
+
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/Alefsousa5/script2/arena/01a048cf-script2/setup.sh)
+```
+
+### Ou a partir de clone local
 
 ```bash
 git clone https://github.com/Alefsousa5/script2.git
 cd script2
-chmod +x install.sh
-sudo bash install.sh
+sudo bash setup.sh
 ```
 
 Após instalado, basta rodar:
@@ -20,7 +27,15 @@ Após instalado, basta rodar:
 sudo painel
 ```
 
-Ou diretamente sem instalar:
+### 🔄 Comandos instalados
+
+| Comando | O que faz |
+|---|---|
+| `sudo painel`             | Abre o painel interativo |
+| `sudo painel-update`      | Atualiza o painel para a versão mais nova (via GitHub) |
+| `sudo painel-uninstall`   | Remove o painel (opcionalmente remove também o Xray) |
+
+### Executar diretamente sem instalar
 ```bash
 sudo bash painel.sh
 ```
@@ -35,21 +50,20 @@ sudo bash painel.sh
 - Expiração de contas (dias)
 - Alterar porta SSH (com backup de segurança)
 - Bloquear/desbloquear usuários
-- Desabilitar login do root por senha (segurança)
+- Desabilitar login do root por senha (hardening)
 - Reiniciar o serviço SSH
 - Gerar par de chaves ed25519 para um usuário
 
 ### ⚡ Gerenciamento Xray
-- Instalação do Xray (via script oficial)
-- Instalação com configuração básica automática (VLESS + TLS, VMess, Trojan)
+- Instalação do Xray (script oficial ou configuração básica automática)
 - Criar contas **VLESS**, **VMess** e **Trojan**
-- Listar todas as contas com etiqueta (operadora: TIM/Vivo/Claro) e validade
+- Listar todas as contas com etiqueta (ex: operadora TIM/Vivo/Claro) e validade
 - Remover contas
-- Gerar **link de conexão** e **QR Code** (para importar no app direto)
+- Gerar **link de conexão** e **QR Code** no terminal (para importar direto no app)
 - Reiniciar/parar Xray
-- Validação de configuração antes de reiniciar
+- Validação de configuração antes de reiniciar (reverte em caso de erro)
 - Backup e restauração da config
-- Portas em uso e status do serviço
+- Limpeza automática de contas expiradas
 
 ### 💻 Informações do Sistema
 - SO, kernel, arquitetura, hostname
@@ -57,7 +71,7 @@ sudo bash painel.sh
 - Uso de CPU, RAM, swap, disco
 - Interfaces de rede e tráfego total (download/upload desde o boot)
 - Load average
-- Status dos serviços principais (SSH, Xray, fail2ban, nginx, etc)
+- Status dos serviços principais (SSH, Xray, fail2ban, nginx, etc.)
 
 ### 👁️ Monitoramento
 - Conexões SSH ativas
@@ -79,7 +93,7 @@ sudo bash painel.sh
 - Reboot/shutdown da VPS
 - Alterar senha do root
 - Verificar IPs
-- **Limpeza automática de contas Xray e SSH expiradas**
+- Limpeza automática de contas Xray e SSH expiradas
 
 ### 📋 Logs
 - Acesso e erro do Xray
@@ -93,8 +107,10 @@ sudo bash painel.sh
 
 ```
 script2/
-├── painel.sh            # Entrada principal
-├── install.sh           # Instalador
+├── setup.sh             # Instalador completo (one-liner)
+├── install.sh           # Alias para setup.sh
+├── uninstall.sh         # Desinstalador
+├── painel.sh            # Entrada principal do painel
 ├── README.md
 └── modules/
     ├── colors.sh        # Cores e helpers de mensagem
@@ -122,6 +138,8 @@ script2/
 ## 🧪 Testado em
 - Debian 11/12
 - Ubuntu 20.04 / 22.04 / 24.04
+- CentOS / Rocky / AlmaLinux (compatibilidade yum)
+- Alpine (apk)
 
 ---
 

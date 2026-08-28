@@ -5,10 +5,13 @@
 #  Linguagem: PT-BR
 # ============================================================================
 
+# Fallback de TERM para ambientes mínimos (console sem ncurses)
+[ -z "$TERM" ] || [ "$TERM" = "unknown" ] || [ "$TERM" = "dumb" ] && export TERM=xterm-256color
+
 # Verificar se está rodando como root
 if [ "$EUID" -ne 0 ]; then
     echo -e "\e[31m[ERRO] Este painel precisa ser executado como root!\e[0m"
-    echo "Use: sudo bash $0"
+    echo "Use: sudo bash $0  (ou simplesmente: sudo painel)"
     exit 1
 fi
 
