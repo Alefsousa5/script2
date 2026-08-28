@@ -17,6 +17,11 @@
 set -euo pipefail
 
 # --------------------------------------------------------------------------- #
+# Caminho deste script                                                         #
+# --------------------------------------------------------------------------- #
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# --------------------------------------------------------------------------- #
 # Configurações padrão                                                        #
 # --------------------------------------------------------------------------- #
 XRAY_VERSION="latest"                 # versão do Xray (latest ou vX.Y.Z)
@@ -137,7 +142,7 @@ have_cmd() {
 
 check_commands() {
     local missing=()
-    for cmd in curl unzip; do
+    for cmd in curl unzip jq; do
         have_cmd "$cmd" || missing+=("$cmd")
     done
     if [[ ${#missing[@]} -gt 0 ]]; then
@@ -145,15 +150,15 @@ check_commands() {
         info "Tentando instalar as dependências automaticamente..."
         if have_cmd apt-get; then
             DEBIAN_FRONTEND=noninteractive apt-get update -y
-            DEBIAN_FRONTEND=noninteractive apt-get install -y curl unzip
+            DEBIAN_FRONTEND=noninteractive apt-get install -y curl unzip jq
         elif have_cmd dnf; then
-            dnf install -y curl unzip
+            dnf install -y curl unzip jq
         elif have_cmd yum; then
-            yum install -y curl unzip
+            yum install -y curl unzip jq
         elif have_cmd apk; then
-            apk add --no-cache curl unzip
+            apk add --no-cache curl unzip jq
         else
-            die "Não foi possível instalar as dependências (curl/unzip). Instale manualmente e rode novamente."
+            die "Não foi possível instalar as dependências (curl/unzip/jq). Instale manualmente e rode novamente."
         fi
     fi
 }
@@ -255,6 +260,19 @@ install_xray() {
     fi
 
     info "Xray instalado em $XRAY_BIN (versão $ver)."
+}
+
+# --------------------------------------------------------------------------- #
+# Instalar o menu de gerenciamento                                            #
+# --------------------------------------------------------------------------- #
+install_menu() {
+    local menu_src="$SCRIPT_DIR/menu.sh"
+    if [[ ! -f "$menu_src" ]]; then
+        warn "menu.sh não encontrado em $menu_src — o menu não será instalado."
+        return
+    fi
+    install -m 0755 "$menu_src" /usr/local/sbin/xray-menu
+    info "Menu instalado: /usr/local/sbin/xray-menu (execute com: sudo xray-menu)"
 }
 
 # --------------------------------------------------------------------------- #
@@ -376,6 +394,39 @@ EOF
     chown "$XRAY_USER:$XRAY_USER" "$config_file"
     chmod 600 "$config_file"
 
+    # Arquivos usados pelo menu de gerenciamento (xray-menu).
+    if [[ ! -f "$XRAY_DIR/users.json" ]]; then
+        cat > "$XRAY_DIR/users.json" <<EOF
+[
+  {
+    "name": "default",
+    "uuid": "$UUID",
+    "email": "default@xray",
+    "created": "$(date +%F)",
+    "expiry": "",
+    "limit_gb": 0,
+    "suspended": false
+  }
+]
+EOF
+    fi
+
+    if [[ ! -f "$XRAY_DIR/settings.json" ]]; then
+        cat > "$XRAY_DIR/settings.json" <<EOF
+{
+  "protocol": "$PROTOCOL",
+  "main_port": $PORT,
+  "ports": [
+    {"port": $PORT, "network": "tcp"},
+    {"port": $((PORT + 1)), "network": "kcp"}
+  ]
+}
+EOF
+    fi
+
+    chown "$XRAY_USER:$XRAY_USER" "$XRAY_DIR/users.json" "$XRAY_DIR/settings.json"
+    chmod 600 "$XRAY_DIR/users.json" "$XRAY_DIR/settings.json"
+
     info "Configuração criada em $config_file"
 }
 
@@ -447,6 +498,7 @@ print_summary() {
     printf '%-28s %s\n' "$(c_cyan 'Logs:')" "$XRAY_LOG_DIR/"
     printf '\n'
     info "Comandos úteis:"
+    printf '  %s\n' "$(c_yellow 'sudo xray-menu')          # abrir menu de gerenciamento"
     printf '  %s\n' "$(c_yellow 'systemctl restart xray')  # reiniciar"
     printf '  %s\n' "$(c_yellow 'systemctl status xray')   # ver status"
     printf '  %s\n' "$(c_yellow 'journalctl -u xray -f')   # acompanhar logs"
@@ -464,6 +516,7 @@ main() {
     check_commands
     setup_user_and_dirs
     install_xray
+    install_menu
     write_config
     write_systemd_service
     check_service || true

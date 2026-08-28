@@ -52,9 +52,34 @@ sudo bash install.sh --port 8080 --uuid "00000000-0000-0000-0000-000000000000"
 sudo bash install.sh --port 8443 --protocol vmess
 ```
 
+## Menu de gerenciamento
+
+Depois da instalação, o script também instala um menu na VPS:
+
+```bash
+sudo xray-menu
+```
+
+Menu:
+
+```
+1. Criar usuário
+2. Data
+3. Limite
+4. Suspender
+5. Gerenciar portas
+6. Gerenciar Xray
+7. Sair
+```
+
+O menu salva os usuários em `/usr/local/etc/xray/users.json`, as portas em
+`/usr/local/etc/xray/settings.json` e regenera automaticamente o
+`config.json` do Xray.
+
 ## Comandos úteis após a instalação
 
 ```bash
+sudo xray-menu           # abrir menu de gerenciamento
 systemctl status xray     # status
 systemctl restart xray    # reiniciar
 journalctl -u xray -f     # acompanhar logs
