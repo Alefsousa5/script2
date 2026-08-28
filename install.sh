@@ -142,7 +142,7 @@ have_cmd() {
 
 check_commands() {
     local missing=()
-    for cmd in curl unzip jq; do
+    for cmd in curl unzip jq qrencode; do
         have_cmd "$cmd" || missing+=("$cmd")
     done
     if [[ ${#missing[@]} -gt 0 ]]; then
@@ -150,15 +150,15 @@ check_commands() {
         info "Tentando instalar as dependências automaticamente..."
         if have_cmd apt-get; then
             DEBIAN_FRONTEND=noninteractive apt-get update -y
-            DEBIAN_FRONTEND=noninteractive apt-get install -y curl unzip jq
+            DEBIAN_FRONTEND=noninteractive apt-get install -y curl unzip jq qrencode
         elif have_cmd dnf; then
-            dnf install -y curl unzip jq
+            dnf install -y curl unzip jq qrencode
         elif have_cmd yum; then
-            yum install -y curl unzip jq
+            yum install -y curl unzip jq qrencode
         elif have_cmd apk; then
-            apk add --no-cache curl unzip jq
+            apk add --no-cache curl unzip jq qrencode
         else
-            die "Não foi possível instalar as dependências (curl/unzip/jq). Instale manualmente e rode novamente."
+            die "Não foi possível instalar as dependências (curl/unzip/jq/qrencode). Instale manualmente e rode novamente."
         fi
     fi
 }

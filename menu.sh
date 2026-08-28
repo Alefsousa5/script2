@@ -62,6 +62,24 @@ ensure_tools() {
             die "Não foi possível instalar o jq. Instale manualmente e rode novamente."
         fi
     fi
+
+    # qrencode é usado para gerar QR Codes dos links de conexão.
+    if ! have_cmd qrencode; then
+        warn "Faltando qrencode. Instalando..."
+        if have_cmd apt-get; then
+            DEBIAN_FRONTEND=noninteractive apt-get update -y >/dev/null
+            DEBIAN_FRONTEND=noninteractive apt-get install -y qrencode >/dev/null
+        elif have_cmd dnf; then
+            dnf install -y qrencode >/dev/null
+        elif have_cmd yum; then
+            yum install -y qrencode >/dev/null
+        elif have_cmd apk; then
+            apk add qrencode >/dev/null
+        else
+            warn "Não foi possível instalar o qrencode. Os links funcionarão, mas o QR Code não."
+        fi
+    fi
+
     if [[ ! -x "$XRAY_BIN" ]]; then
         die "Xray não encontrado em $XRAY_BIN. Rode primeiro: sudo bash install.sh"
     fi
@@ -497,6 +515,112 @@ manage_ports() {
 }
 
 # --------------------------------------------------------------------------- #
+# Links de conexão e QR Code                                                   #
+# --------------------------------------------------------------------------- #
+get_server_ip() {
+    local ip input
+    ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+    read -rp "IP/Domínio da VPS [${ip:-}]: " input
+    [[ -n "$input" ]] && ip="$input"
+    echo "$ip"
+}
+
+build_vless_link() {
+    local uuid="$1" ip="$2" port="$3" network="$4" name="$5"
+    local encoded
+    encoded="$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$name" 2>/dev/null || echo "$name")"
+    printf 'vless://%s@%s:%s?type=%s&security=none&headerType=none#%s' \
+        "$uuid" "$ip" "$port" "$network" "$encoded"
+}
+
+build_vmess_link() {
+    local uuid="$1" ip="$2" port="$3" network="$4" name="$5"
+    python3 - "$ip" "$port" "$uuid" "$network" "$name" <<'PY'
+import base64, json, sys
+ip, port, uid, net, name = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4], sys.argv[5]
+obj = {
+    "v": "2",
+    "ps": name,
+    "add": ip,
+    "port": port,
+    "id": uid,
+    "aid": "0",
+    "scy": "auto",
+    "net": net,
+    "type": "none",
+    "host": "",
+    "path": "",
+    "tls": ""
+}
+raw = base64.b64encode(json.dumps(obj).encode()).decode()
+print("vmess://" + raw)
+PY
+}
+
+build_link_for() {
+    local protocol uuid ip port network name
+    protocol="$1"; uuid="$2"; ip="$3"; port="$4"; network="$5"; name="$6"
+    if [[ "$protocol" == "vmess" ]]; then
+        build_vmess_link "$uuid" "$ip" "$port" "$network" "$name"
+    else
+        build_vless_link "$uuid" "$ip" "$port" "$network" "$name"
+    fi
+}
+
+connection_links() {
+    local idx name uuid protocol ip port network line
+    idx="$(select_user)"
+    name="$(jq -r ".[$idx - 1].name" "$XRAY_USERS")"
+    uuid="$(jq -r ".[$idx - 1].uuid" "$XRAY_USERS")"
+    protocol="$(jq -r '.protocol // "vless"' "$XRAY_SETTINGS")"
+    ip="$(get_server_ip)"
+
+    echo ""
+    info "Links de conexão para '$name' (IP: $ip, protocolo: $protocol):"
+    while IFS=$'\t' read -r port network; do
+        line="$(build_link_for "$protocol" "$uuid" "$ip" "$port" "$network" "$name")"
+        printf '\n  %s\n  %s\n' "$(c_cyan "[$network - porta $port]")" "$line"
+    done < <(jq -r '.ports[] | [.port, .network] | @tsv' "$XRAY_SETTINGS")
+    echo ""
+    info "Cole o link no seu app (v2rayNG, v2rayN, Shadowrocket etc)."
+}
+
+show_qr() {
+    local idx name uuid protocol ip port network line count choice
+    idx="$(select_user)"
+    name="$(jq -r ".[$idx - 1].name" "$XRAY_USERS")"
+    uuid="$(jq -r ".[$idx - 1].uuid" "$XRAY_USERS")"
+    protocol="$(jq -r '.protocol // "vless"' "$XRAY_SETTINGS")"
+    ip="$(get_server_ip)"
+
+    echo ""
+    list_portas
+    read -rp "Escolha a porta (ou deixe vazio para todas): " choice
+
+    if [[ -n "$choice" ]]; then
+        if ! jq -e --argjson p "$choice" 'any(.ports[]; .port == $p)' "$XRAY_SETTINGS" >/dev/null 2>&1; then
+            die "Porta inválida: $choice"
+        fi
+        network="$(jq -r --argjson p "$choice" '.ports[] | select(.port == $p) | .network' "$XRAY_SETTINGS")"
+        line="$(build_link_for "$protocol" "$uuid" "$ip" "$choice" "$network" "$name")"
+        echo ""
+        info "QR Code ($protocol / $network / porta $choice):"
+        qrencode -t ANSIUTF8 -m 2 <<< "$line"
+        echo ""
+        echo "$line"
+    else
+        while IFS=$'\t' read -r port network; do
+            line="$(build_link_for "$protocol" "$uuid" "$ip" "$port" "$network" "$name")"
+            echo ""
+            info "QR Code ($protocol / $network / porta $port):"
+            qrencode -t ANSIUTF8 -m 2 <<< "$line"
+            echo ""
+            echo "$line"
+        done < <(jq -r '.ports[] | [.port, .network] | @tsv' "$XRAY_SETTINGS")
+    fi
+}
+
+# --------------------------------------------------------------------------- #
 # Gerenciar Xray                                                              #
 # --------------------------------------------------------------------------- #
 manage_xray() {
@@ -507,7 +631,9 @@ manage_xray() {
     echo "   [4] Iniciar"
     echo "   [5] Ver logs (tempo real)"
     echo "   [6] Ver config gerada"
-    echo "   [7] Ativar expiração automática (cron)"
+    echo "   [7] Ver links de conexão"
+    echo "   [8] Gerar QR Code"
+    echo "   [9] Ativar expiração automática (cron)"
     echo "   [0] Voltar"
     read -rp "Opção: " opt
 
@@ -531,6 +657,12 @@ manage_xray() {
             cat "$XRAY_CONFIG"
             ;;
         7)
+            connection_links
+            ;;
+        8)
+            show_qr
+            ;;
+        9)
             install_cron
             ;;
         0) return ;;

@@ -76,6 +76,15 @@ O menu salva os usuários em `/usr/local/etc/xray/users.json`, as portas em
 `/usr/local/etc/xray/settings.json` e regenera automaticamente o
 `config.json` do Xray.
 
+## Links e QR Code
+
+O menu permite:
+
+- **Ver links de conexão**: gera os links `vless://` ou `vmess://` para cada porta configurada.
+- **Gerar QR Code**: imprime o QR no terminal para escanear no celular (usa `qrencode`).
+
+Para isso, acesse `6. Gerenciar Xray` e escolha `7` ou `8`.
+
 ## Comandos úteis após a instalação
 
 ```bash
